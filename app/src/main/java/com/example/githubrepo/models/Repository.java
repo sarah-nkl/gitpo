@@ -24,8 +24,12 @@ public class Repository {
     private String createdAt;
     @SerializedName("updated_at")
     private String updatedAt;
+    @SerializedName("pushed_at")
+    private String pushedAt;
     @SerializedName("homepage")
     private String homePage;
+    @SerializedName("stargazers_count")
+    private int stargazersCount;
     @SerializedName("language")
     private String language;
     @SerializedName("open_issues_count")
@@ -103,12 +107,28 @@ public class Repository {
         this.updatedAt = updatedAt;
     }
 
+    public String getPushedAt() {
+        return pushedAt;
+    }
+
+    public void setPushedAt(String pushedAt) {
+        this.pushedAt = pushedAt;
+    }
+
     public String getHomePage() {
         return homePage;
     }
 
     public void setHomePage(String homePage) {
         this.homePage = homePage;
+    }
+
+    public int getStargazersCount() {
+        return stargazersCount;
+    }
+
+    public void setStargazersCount(int stargazersCount) {
+        this.stargazersCount = stargazersCount;
     }
 
     public String getLanguage() {
