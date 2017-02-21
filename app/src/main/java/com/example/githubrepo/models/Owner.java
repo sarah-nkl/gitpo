@@ -1,12 +1,15 @@
 package com.example.githubrepo.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by sarah_neo on 20/02/2017.
  */
 
-public class Owner {
+public class Owner implements Parcelable {
 
     @SerializedName("login")
     private String login;
@@ -39,5 +42,34 @@ public class Owner {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int i) {
+        dest.writeString(login);
+        dest.writeLong(id);
+        dest.writeString(avatarUrl);
+    }
+
+    /** Static field used to regenerate object, individually or as arrays */
+    public static final Parcelable.Creator<Owner> CREATOR = new Parcelable.Creator<Owner>() {
+        public Owner createFromParcel(Parcel pc) {
+            return new Owner(pc);
+        }
+        public Owner[] newArray(int size) {
+            return new Owner[size];
+        }
+    };
+
+    /**Ctor from Parcel, reads back fields IN THE ORDER they were written */
+    Owner(Parcel pc){
+        login = pc.readString();
+        id = pc.readLong();
+        avatarUrl = pc.readString();
     }
 }

@@ -23,36 +23,57 @@
 package com.example.githubrepo;
 
 import com.example.githubrepo.models.Repository;
+import com.example.githubrepo.services.GitHubService;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.reactivex.Observable;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class RepoSearchEngine {
 
-    private final List<Repository> mRepoList;
-    private final int mRepoCount;
+    private static final int PER_PAGE = 20;
+    private static final String GITHUB_SEARCH_URL = "https://api.github.com/";
+    private GitHubService mService;
 
     public RepoSearchEngine(List<Repository> repoList) {
-        mRepoList = repoList;
-        mRepoCount = mRepoList.size();
+        //Create GitHubService
+        GsonBuilder mBuilder = new GsonBuilder();
+        Type listStockMover = new TypeToken<List<Repository>>() {
+        }.getType();
+        mBuilder.registerTypeAdapter(listStockMover, new RepoListDeserializer());
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(GITHUB_SEARCH_URL)
+                .addConverterFactory(GsonConverterFactory.create(mBuilder.create()))
+                .build();
+
+        mService = retrofit.create(GitHubService.class);
     }
 
-    public List<Repository> search(String query) {
+    public List<Repository> search(String query, int pageNum) {
         query = query.toLowerCase();
 
+        List<Repository> result = new ArrayList<>();
+
+        Call<List<Repository>> repoList = mService.listRepos(query, "updated", null, pageNum, PER_PAGE);
+
         try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
+            result = repoList.execute().body();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
-        List<Repository> result = new LinkedList<>();
-
-//        for (int i = 0; i < mRepoCount; i++) {
-//            if (mRepoList.get(i).toLowerCase().contains(query)) {
-//                result.add(mCheeses.get(i));
-//            }
-//        }
 
         return result;
     }

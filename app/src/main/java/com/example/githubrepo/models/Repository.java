@@ -1,12 +1,17 @@
 package com.example.githubrepo.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
 
 /**
  * Created by sarah_neo on 20/02/2017.
  */
 
-public class Repository {
+public class Repository implements Parcelable {
 
     @SerializedName("id")
     private long id;
@@ -32,6 +37,8 @@ public class Repository {
     private int stargazersCount;
     @SerializedName("language")
     private String language;
+    @SerializedName("forks_count")
+    private int forksCount;
     @SerializedName("open_issues_count")
     private int openIssuesCount;
     @SerializedName("watchers")
@@ -139,6 +146,14 @@ public class Repository {
         this.language = language;
     }
 
+    public int getForksCount() {
+        return forksCount;
+    }
+
+    public void setForksCount(int forksCount) {
+        this.forksCount = forksCount;
+    }
+
     public int getOpenIssuesCount() {
         return openIssuesCount;
     }
@@ -169,5 +184,61 @@ public class Repository {
 
     public void setOwner(Owner owner) {
         this.owner = owner;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int i) {
+        dest.writeLong(id);
+        dest.writeString(name);
+        dest.writeString(fullName);
+        dest.writeInt(privateRepo ? 1 : 0);
+        dest.writeString(htmlUrl);
+        dest.writeString(desc);
+        dest.writeString(createdAt);
+        dest.writeString(updatedAt);
+        dest.writeString(pushedAt);
+        dest.writeString(homePage);
+        dest.writeInt(stargazersCount);
+        dest.writeString(language);
+        dest.writeInt(forksCount);
+        dest.writeInt(openIssuesCount);
+        dest.writeInt(watchers);
+        dest.writeDouble(score);
+        dest.writeSerializable((Serializable) owner);
+    }
+
+    /** Static field used to regenerate object, individually or as arrays */
+    public static final Parcelable.Creator<Repository> CREATOR = new Parcelable.Creator<Repository>() {
+        public Repository createFromParcel(Parcel pc) {
+            return new Repository(pc);
+        }
+        public Repository[] newArray(int size) {
+            return new Repository[size];
+        }
+    };
+
+    /**Ctor from Parcel, reads back fields IN THE ORDER they were written */
+    Repository(Parcel pc){
+        id = pc.readLong();
+        fullName = pc.readString();
+        privateRepo = pc.readInt() == 1;
+        htmlUrl = pc.readString();
+        desc = pc.readString();
+        createdAt = pc.readString();
+        updatedAt = pc.readString();
+        pushedAt = pc.readString();
+        homePage = pc.readString();
+        stargazersCount = pc.readInt();
+        language = pc.readString();
+        forksCount = pc.readInt();
+        openIssuesCount = pc.readInt();
+        watchers = pc.readInt();
+        score = pc.readDouble();
+        owner = (Owner) pc.readSerializable();
     }
 }

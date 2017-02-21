@@ -32,8 +32,7 @@
         android:layout_toStartOf="@id/btn_search"
         android:layout_alignBottom="@id/btn_search"
         android:layout_marginLeft="@dimen/default_margin"
-        android:layout_marginStart="@dimen/default_margin"
-        />
+        android:layout_marginStart="@dimen/default_margin" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_results"

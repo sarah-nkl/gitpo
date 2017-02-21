@@ -15,6 +15,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -52,10 +53,11 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
         holder.tvFullName.setText(item.getFullName());
         holder.tvDesc.setText(item.getDesc());
         holder.tvLanguage.setText(item.getLanguage());
-        holder.tvStars.setText(item.getStargazersCount());
+        holder.tvStars.setText(Integer.toString(item.getStargazersCount()));
+        holder.tvForks.setText(Integer.toString(item.getForksCount()));
         holder.tvLastUpdated.setText(DateUtils.getRelativeDateTimeString(
                 mActivity,
-                convertStringToTimeMillis(item.getUpdatedAt()),
+                convertStringToTimeMillis(item.getPushedAt()),
                 DateUtils.MINUTE_IN_MILLIS,
                 DateUtils.WEEK_IN_MILLIS,
                 FORMAT_SHOW_DATE));
@@ -79,20 +81,13 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
             ButterKnife.bind(this, itemView);
         }
 
-//        @OnClick(R.id.ll_repo_container)
-//        void viewDetails() {
-//            Repository repository = mRepoList.get(getAdapterPosition());
-//
-//
-//        }
-
     }
 
     private long convertStringToTimeMillis(String dateString) {
         long milliseconds = 0;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
         try {
-            Date d = sdf.parse(dateString);
+            Date d = sdf.parse(dateString.replaceAll("Z$", "+0000"));
             milliseconds = d.getTime();
         } catch (ParseException e) {
             e.printStackTrace();

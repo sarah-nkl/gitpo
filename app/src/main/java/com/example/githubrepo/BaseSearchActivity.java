@@ -23,8 +23,10 @@
 package com.example.githubrepo;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -40,8 +42,15 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+
+/**
+ * Created by sarahneo on 20/2/17.
+ */
 
 public abstract class BaseSearchActivity extends AppCompatActivity {
+
+    private static final String KEY_REPO_LIST = "key_repo_list";
 
     @BindView(R.id.rv_results) RecyclerView rvResults;
     @BindView(R.id.et_query) EditText etQuery;
@@ -49,7 +58,6 @@ public abstract class BaseSearchActivity extends AppCompatActivity {
     @BindView(R.id.btn_search) Button btnSearch;
 
     protected RepoSearchEngine mRepoSearchEngine;
-    protected Button mSearchButton;
     private RepoListAdapter mAdapter;
     private List<Repository> mRepoList;
 
@@ -61,6 +69,7 @@ public abstract class BaseSearchActivity extends AppCompatActivity {
 
         mRepoList = new ArrayList<>();
 
+        rvResults.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         rvResults.setLayoutManager(new LinearLayoutManager(this));
         rvResults.setAdapter(mAdapter = new RepoListAdapter(this, mRepoList));
 
@@ -78,15 +87,19 @@ public abstract class BaseSearchActivity extends AppCompatActivity {
     protected void showResult(List<Repository> result) {
         if (result.isEmpty()) {
             Toast.makeText(this, R.string.nothing_found, Toast.LENGTH_SHORT).show();
-//            mAdapter.setCheeses(Collections.<String>emptyList());
             mRepoList.clear();
             mAdapter.notifyDataSetChanged();
         } else {
-//            mAdapter.setCheeses(result);
             mRepoList.clear();
             mRepoList.addAll(result);
             mAdapter.notifyDataSetChanged();
         }
+    }
+
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(KEY_REPO_LIST, (ArrayList<? extends Parcelable>) mRepoList);
+//        outState.putBoolean(KEY_IS_LOADING, mIsLoading);
+        super.onSaveInstanceState(outState);
     }
 
 }

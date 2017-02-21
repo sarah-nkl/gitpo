@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Cancellable;
@@ -41,21 +43,40 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
+
+/**
+ * Created by sarahneo on 20/2/17.
+ */
 
 public class MainActivity extends BaseSearchActivity {
 
     private Disposable mDisposable;
+    private int pageNum = 1; // Page number starts from 1
 
     @Override
     protected void onStart() {
         super.onStart();
 
+        getRepoList();
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (!mDisposable.isDisposed()) {
+            mDisposable.dispose();
+        }
+    }
+
+    private void getRepoList() {
         Observable<String> buttonClickStream = createButtonClickObservable();
         Observable<String> textChangeStream = createTextChangeObservable();
 
         Observable<String> searchTextObservable = Observable.merge(textChangeStream, buttonClickStream);
 
-        mDisposable = searchTextObservable // change this line
+        mDisposable = searchTextObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(new Consumer<String>() {
                     @Override
@@ -67,7 +88,7 @@ public class MainActivity extends BaseSearchActivity {
                 .map(new Function<String, List<Repository>>() {
                     @Override
                     public List<Repository> apply(String query) {
-                        return mRepoSearchEngine.search(query);
+                        return mRepoSearchEngine.search(query, pageNum);
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -80,38 +101,23 @@ public class MainActivity extends BaseSearchActivity {
                 });
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (!mDisposable.isDisposed()) {
-            mDisposable.dispose();
-        }
-    }
-
-    // 1
     private Observable<String> createButtonClickObservable() {
 
-        // 2
         return Observable.create(new ObservableOnSubscribe<String>() {
 
-            // 3
             @Override
             public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
-                // 4
-                mSearchButton.setOnClickListener(new View.OnClickListener() {
+                btnSearch.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        // 5
                         emitter.onNext(etQuery.getText().toString());
                     }
                 });
 
-                // 6
                 emitter.setCancellable(new Cancellable() {
                     @Override
                     public void cancel() throws Exception {
-                        // 7
-                        mSearchButton.setOnClickListener(null);
+                        btnSearch.setOnClickListener(null);
                     }
                 });
             }
@@ -120,11 +126,9 @@ public class MainActivity extends BaseSearchActivity {
 
     //1
     private Observable<String> createTextChangeObservable() {
-        //2
         Observable<String> textChangeObservable = Observable.create(new ObservableOnSubscribe<String>() {
             @Override
             public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
-                //3
                 final TextWatcher watcher = new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -134,17 +138,14 @@ public class MainActivity extends BaseSearchActivity {
                     public void afterTextChanged(Editable s) {
                     }
 
-                    //4
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
                         emitter.onNext(s.toString());
                     }
                 };
 
-                //5
                 etQuery.addTextChangedListener(watcher);
 
-                //6
                 emitter.setCancellable(new Cancellable() {
                     @Override
                     public void cancel() throws Exception {
@@ -160,6 +161,6 @@ public class MainActivity extends BaseSearchActivity {
                     public boolean test(String query) throws Exception {
                         return query.length() >= 2;
                     }
-                }).debounce(1000, TimeUnit.MILLISECONDS);  // add this line
+                }).debounce(1000, TimeUnit.MILLISECONDS);  // Wait for x seconds before calling
     }
 }
