@@ -42,7 +42,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import retrofit2.Call;
 
 /**
  * Created by sarahneo on 20/2/17.
@@ -73,7 +72,7 @@ public abstract class BaseSearchActivity extends AppCompatActivity {
         rvResults.setLayoutManager(new LinearLayoutManager(this));
         rvResults.setAdapter(mAdapter = new RepoListAdapter(this, mRepoList));
 
-        mRepoSearchEngine = new RepoSearchEngine(mRepoList);
+        mRepoSearchEngine = new RepoSearchEngine();
     }
 
     protected void showProgressBar() {

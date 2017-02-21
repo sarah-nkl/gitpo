@@ -1,9 +1,12 @@
 package com.example.githubrepo;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
 import android.text.format.DateUtils;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,12 +18,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
-import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
 
 /**
  * Created by sarahneo on 20/2/17.
@@ -50,17 +50,20 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
 
         final Repository item = mRepoList.get(position);
 
-        holder.tvFullName.setText(item.getFullName());
+        String fullName = item.getFullName();
+        SpannableString spanString = new SpannableString(fullName);
+        spanString.setSpan(new StyleSpan(Typeface.BOLD), fullName.indexOf("/") + 1, spanString.length(), 0);
+        spanString.setSpan(new StyleSpan(Typeface.ITALIC), fullName.indexOf("/") + 1, spanString.length(), 0);
+        holder.tvFullName.setText(spanString);
+
         holder.tvDesc.setText(item.getDesc());
         holder.tvLanguage.setText(item.getLanguage());
         holder.tvStars.setText(Integer.toString(item.getStargazersCount()));
         holder.tvForks.setText(Integer.toString(item.getForksCount()));
-        holder.tvLastUpdated.setText(DateUtils.getRelativeDateTimeString(
-                mActivity,
+        holder.tvLastUpdated.setText(DateUtils.getRelativeTimeSpanString(
                 convertStringToTimeMillis(item.getPushedAt()),
-                DateUtils.MINUTE_IN_MILLIS,
-                DateUtils.WEEK_IN_MILLIS,
-                FORMAT_SHOW_DATE));
+                System.currentTimeMillis(),
+                DateUtils.DAY_IN_MILLIS));
     }
 
     @Override

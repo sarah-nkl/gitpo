@@ -30,14 +30,9 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
-import io.reactivex.Observable;
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -47,7 +42,7 @@ public class RepoSearchEngine {
     private static final String GITHUB_SEARCH_URL = "https://api.github.com/";
     private GitHubService mService;
 
-    public RepoSearchEngine(List<Repository> repoList) {
+    public RepoSearchEngine() {
         //Create GitHubService
         GsonBuilder mBuilder = new GsonBuilder();
         Type listStockMover = new TypeToken<List<Repository>>() {
@@ -67,7 +62,7 @@ public class RepoSearchEngine {
 
         List<Repository> result = new ArrayList<>();
 
-        Call<List<Repository>> repoList = mService.listRepos(query, "updated", null, pageNum, PER_PAGE);
+        Call<List<Repository>> repoList = mService.listRepos(query, "stars", null, pageNum, PER_PAGE);
 
         try {
             result = repoList.execute().body();

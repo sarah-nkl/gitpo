@@ -20,6 +20,8 @@
         android:id="@+id/tv_desc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
         tools:text="Type-safe HTTP client for Android and Java by Square, Inc."/>
 
     <LinearLayout
@@ -31,7 +33,8 @@
             android:id="@+id/tv_language"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="1.3"
+            style="@style/ListItemBottomTextStyle"
             tools:text="Java"/>
 
         <TextView
@@ -39,6 +42,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            style="@style/ListItemBottomTextStyle"
+            android:drawableStart="@drawable/ic_star_black_16dp"
             tools:text="18,991"/>
 
         <TextView
@@ -46,14 +51,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:drawableStart="@drawable/ic_call_split_black_18dp"
+            style="@style/ListItemBottomTextStyle"
             tools:text="3,945"/>
 
         <TextView
             android:id="@+id/tv_last_updated"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
-            tools:text="Updated 2 days ago"/>
+            android:layout_weight="1.5"
+            android:drawableStart="@drawable/ic_timelapse_black_18dp"
+            style="@style/ListItemBottomTextStyle"
+            tools:text="Yesterday"/>
 
     </LinearLayout>
 </LinearLayout>
