@@ -71,7 +71,7 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
         }
 
         Glide.with(mActivity)
-                .load(item.getOwner().getAvatarUrl())
+                .load(item.getOwnerAvatarUrl())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
                 .into(holder.civProfile);
     }

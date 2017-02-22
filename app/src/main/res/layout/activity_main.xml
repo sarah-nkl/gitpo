@@ -59,4 +59,12 @@
         android:indeterminate="false"
         android:layout_centerInParent="true"/>
 
+    <TextView
+        android:id="@+id/tv_no_results"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="@string/nothing_found"
+        android:visibility="gone"
+        android:layout_centerInParent="true"/>
+
 </RelativeLayout>

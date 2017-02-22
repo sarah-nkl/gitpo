@@ -5,8 +5,6 @@ import android.os.Parcelable;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
-
 /**
  * Created by sarah_neo on 20/02/2017.
  */
@@ -15,38 +13,21 @@ public class Repository implements Parcelable {
 
     @SerializedName("id")
     private long id;
-    @SerializedName("name")
-    private String name;
     @SerializedName("full_name")
     private String fullName;
-    @SerializedName("private")
-    private boolean privateRepo;
-    @SerializedName("html_url")
-    private String htmlUrl;
     @SerializedName("description")
     private String desc;
-    @SerializedName("create_at")
-    private String createdAt;
-    @SerializedName("updated_at")
-    private String updatedAt;
     @SerializedName("pushed_at")
     private String pushedAt;
-    @SerializedName("homepage")
-    private String homePage;
     @SerializedName("stargazers_count")
     private int stargazersCount;
     @SerializedName("language")
     private String language;
     @SerializedName("forks_count")
     private int forksCount;
-    @SerializedName("open_issues_count")
-    private int openIssuesCount;
-    @SerializedName("watchers")
-    private int watchers;
-    @SerializedName("score")
-    private double score;
 
-    private Owner owner;
+    private String ownerAvatarUrl;
+    private int total;
 
     public Repository() {}
 
@@ -58,36 +39,12 @@ public class Repository implements Parcelable {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getFullName() {
         return fullName;
     }
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    public boolean isPrivateRepo() {
-        return privateRepo;
-    }
-
-    public void setPrivateRepo(boolean privateRepo) {
-        this.privateRepo = privateRepo;
-    }
-
-    public String getHtmlUrl() {
-        return htmlUrl;
-    }
-
-    public void setHtmlUrl(String htmlUrl) {
-        this.htmlUrl = htmlUrl;
     }
 
     public String getDesc() {
@@ -98,36 +55,12 @@ public class Repository implements Parcelable {
         this.desc = desc;
     }
 
-    public String getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(String updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     public String getPushedAt() {
         return pushedAt;
     }
 
     public void setPushedAt(String pushedAt) {
         this.pushedAt = pushedAt;
-    }
-
-    public String getHomePage() {
-        return homePage;
-    }
-
-    public void setHomePage(String homePage) {
-        this.homePage = homePage;
     }
 
     public int getStargazersCount() {
@@ -154,36 +87,20 @@ public class Repository implements Parcelable {
         this.forksCount = forksCount;
     }
 
-    public int getOpenIssuesCount() {
-        return openIssuesCount;
+    public String getOwnerAvatarUrl() {
+        return ownerAvatarUrl;
     }
 
-    public void setOpenIssuesCount(int openIssuesCount) {
-        this.openIssuesCount = openIssuesCount;
+    public void setOwnerAvatarUrl(String ownerAvatarUrl) {
+        this.ownerAvatarUrl = ownerAvatarUrl;
     }
 
-    public int getWatchers() {
-        return watchers;
+    public int getTotal() {
+        return total;
     }
 
-    public void setWatchers(int watchers) {
-        this.watchers = watchers;
-    }
-
-    public double getScore() {
-        return score;
-    }
-
-    public void setScore(double score) {
-        this.score = score;
-    }
-
-    public Owner getOwner() {
-        return owner;
-    }
-
-    public void setOwner(Owner owner) {
-        this.owner = owner;
+    public void setTotal(int total) {
+        this.total = total;
     }
 
     @Override
@@ -194,22 +111,14 @@ public class Repository implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int i) {
         dest.writeLong(id);
-        dest.writeString(name);
         dest.writeString(fullName);
-        dest.writeInt(privateRepo ? 1 : 0);
-        dest.writeString(htmlUrl);
         dest.writeString(desc);
-        dest.writeString(createdAt);
-        dest.writeString(updatedAt);
         dest.writeString(pushedAt);
-        dest.writeString(homePage);
         dest.writeInt(stargazersCount);
         dest.writeString(language);
         dest.writeInt(forksCount);
-        dest.writeInt(openIssuesCount);
-        dest.writeInt(watchers);
-        dest.writeDouble(score);
-        dest.writeParcelable(owner, i);
+        dest.writeString(ownerAvatarUrl);
+        dest.writeInt(total);
     }
 
     /** Static field used to regenerate object, individually or as arrays */
@@ -226,19 +135,12 @@ public class Repository implements Parcelable {
     Repository(Parcel pc){
         id = pc.readLong();
         fullName = pc.readString();
-        privateRepo = pc.readInt() == 1;
-        htmlUrl = pc.readString();
         desc = pc.readString();
-        createdAt = pc.readString();
-        updatedAt = pc.readString();
         pushedAt = pc.readString();
-        homePage = pc.readString();
         stargazersCount = pc.readInt();
         language = pc.readString();
         forksCount = pc.readInt();
-        openIssuesCount = pc.readInt();
-        watchers = pc.readInt();
-        score = pc.readDouble();
-        owner = pc.readParcelable(Owner.class.getClassLoader());
+        ownerAvatarUrl = pc.readString();
+        total = pc.readInt();
     }
 }

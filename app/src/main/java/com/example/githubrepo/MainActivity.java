@@ -41,7 +41,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.githubrepo.models.Repository;
 import com.example.githubrepo.services.event.BusEvent;
@@ -52,7 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -68,6 +66,9 @@ public class MainActivity extends BaseSearchActivity {
     private static final String KEY_REPO_LIST = "key_repo_list";
     private static final String KEY_IS_LOADING = "key_is_loading";
     private static final String KEY_IS_SHOW_SEARCH = "key_is_show_search";
+    private static final String KEY_TOTAL_RESULTS = "key_total_results";
+    private static final String SORT_BY_STARS = "stars";
+    private static final String SORT_BY_UPDATED = "updated";
     private static final int VISIBLE_THRESHOLD = 5;
 
     @BindView(R.id.rv_results)
@@ -78,12 +79,16 @@ public class MainActivity extends BaseSearchActivity {
     ProgressBar pbLoading;
     @BindView(R.id.btn_back)
     ImageButton btnBack;
+    @BindView(R.id.tv_no_results)
+    TextView tvNoResults;
 
     private RepoListAdapter mAdapter;
     private List<Repository> mRepoList;
     private LinearLayoutManager mLayoutManager;
     private boolean mIsShowSearch = false;
     private boolean mIsLoading = false;
+    private boolean isAllLoaded = false;
+    private int totalCount = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -106,8 +111,20 @@ public class MainActivity extends BaseSearchActivity {
         rvResults.setLayoutManager(mLayoutManager);
         rvResults.setAdapter(mAdapter = new RepoListAdapter(this, mRepoList));
 
-        if (mRepoList.size() == 0)
-            getRepoList("random", 1);
+        if (mRepoList.size() == 0) {
+            // Check last search
+            String lastSearch = mSharedPref.getString(Constants.SP_LAST_QUERY, "");
+            if (lastSearch.equals(""))
+                // On first load, generate popular repositories
+                getRepoList("stars:>5000", SORT_BY_UPDATED, 1);
+            else {
+                getRepoList(lastSearch, SORT_BY_STARS, 1);
+                etQuery.setText(lastSearch);
+                etQuery.setSelection(etQuery.getText().length());
+            }
+        }
+
+        etQuery.setCompoundDrawables(null, null, etQuery.getText().toString().equals("") ? null : x, null);
     }
 
 
@@ -116,7 +133,6 @@ public class MainActivity extends BaseSearchActivity {
         x = getResources().getDrawable(R.drawable.ic_clear_white_24dp);
 
         x.setBounds(0, 0, x.getIntrinsicWidth(), x.getIntrinsicHeight());
-        etQuery.setCompoundDrawables(null, null, etQuery.getText().toString().equals("") ? null : x, null);
         etQuery.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
 
@@ -141,18 +157,6 @@ public class MainActivity extends BaseSearchActivity {
         setSupportActionBar(mToolbar);
     }
 
-    protected void showResult(List<Repository> result) {
-        if (result.isEmpty()) {
-            Toast.makeText(this, R.string.nothing_found, Toast.LENGTH_SHORT).show();
-            mRepoList.clear();
-            mAdapter.notifyDataSetChanged();
-        } else {
-            mRepoList.clear();
-            mRepoList.addAll(result);
-            mAdapter.notifyDataSetChanged();
-        }
-    }
-
     private void toggleShowSearch(boolean isShow) {
         if (isShow) {
             menuItemSearch.setVisible(false);
@@ -165,14 +169,6 @@ public class MainActivity extends BaseSearchActivity {
             menuItemSearch.setVisible(true);
         }
     }
-
-//    private void onLoadMore() {
-//        if (!isAllLoaded) {
-//            // Load data
-//            int index = mRepoList.size();
-//            get(index / RepoSearchEngine.PER_PAGE);
-//        }
-//    }
 
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(KEY_REPO_LIST, (ArrayList<? extends Parcelable>) mRepoList);
@@ -201,16 +197,25 @@ public class MainActivity extends BaseSearchActivity {
     @Subscribe
     public void OnLoadReposEvent(LoadReposEvent event) {
         hideProgressBar();
-//        if (mTvNoResults.getVisibility() == View.VISIBLE)
-//            mTvNoResults.setVisibility(View.GONE);
 
-        if (event.getData().size() == 0) {
-            //isAllLoaded = true;
+        if (event.getData() == null || event.getData().size() == 0) {
+            isAllLoaded = true;
+            if (mRepoList.size() == 0) {
+                // No results found
+                if (tvNoResults.getVisibility() == View.GONE)
+                    tvNoResults.setVisibility(View.VISIBLE);
+            }
+
         } else {
+            if (tvNoResults.getVisibility() == View.VISIBLE)
+                tvNoResults.setVisibility(View.GONE);
+            totalCount = event.getData().get(0).getTotal();
             int posStart = mRepoList.size();
             mRepoList.addAll(event.getData());
             mAdapter.notifyItemRangeInserted(posStart, event.getData().size());
             mIsLoading = false;
+            if (mRepoList.size() == totalCount)
+                isAllLoaded = true;
         }
     }
 
@@ -247,10 +252,10 @@ public class MainActivity extends BaseSearchActivity {
         toggleShowSearch(false);
     }
 
-    private void getRepoList(String query, int pageNum) {
+    private void getRepoList(String query, String sort, int pageNum) {
         showProgressBar();
 
-        Call<List<Repository>> productList = mService.listRepos(query, null, null, pageNum,
+        Call<List<Repository>> productList = mService.listRepos(query, sort, null, pageNum,
                 Constants.NUM_LOADED);
 
         productList.enqueue(new Callback<List<Repository>>() {
@@ -269,7 +274,7 @@ public class MainActivity extends BaseSearchActivity {
                 t.printStackTrace();
                 mRepoList.clear();
                 mAdapter.notifyDataSetChanged();
-                //mTvNoResults.setVisibility(View.VISIBLE);
+                tvNoResults.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -289,7 +294,7 @@ public class MainActivity extends BaseSearchActivity {
                     null,
                     null,
                     etQuery.getText().toString().equals("") ? null : x, null);
-//            emitter.onNext(s.toString());
+
         }
     };
 
@@ -297,8 +302,9 @@ public class MainActivity extends BaseSearchActivity {
         @Override
         public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                // Your piece of code on keyboard search click
-
+                mRepoList.clear();
+                isAllLoaded = false;
+                getRepoList(etQuery.getText().toString(), SORT_BY_UPDATED, 1);
                 return true;
             }
             return false;
@@ -321,11 +327,10 @@ public class MainActivity extends BaseSearchActivity {
     };
 
     private void onLoadMore() {
-        //if (!isAllLoaded) {
-        if (!etQuery.getText().toString().equals("")) {
+        if (!isAllLoaded && !etQuery.getText().toString().equals("")) {
             // Load data
             int index = mRepoList.size();
-            getRepoList(etQuery.getText().toString(), index / Constants.NUM_LOADED + 1);
+            getRepoList(etQuery.getText().toString(), SORT_BY_STARS, index / Constants.NUM_LOADED + 1);
         }
     }
 
@@ -354,5 +359,7 @@ public class MainActivity extends BaseSearchActivity {
         LoadReposEvent event = (LoadReposEvent) getEvent(
                 BusEvent.EventType.REPOS);
         event.setData(mRepoList);
+
+        mSharedPref.edit().putString(Constants.SP_LAST_QUERY, etQuery.getText().toString()).apply();
     }
 }

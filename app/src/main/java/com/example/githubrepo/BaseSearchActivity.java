@@ -22,8 +22,10 @@
 
 package com.example.githubrepo;
 
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
@@ -54,6 +56,7 @@ public abstract class BaseSearchActivity extends AppCompatActivity {
     protected Drawable x;
 
     protected GitHubService mService;
+    protected SharedPreferences mSharedPref;
 
     @Inject
     BusProvider busProvider;
@@ -66,6 +69,7 @@ public abstract class BaseSearchActivity extends AppCompatActivity {
 
         ((MyApplication) getApplication()).inject(this);
 
+        mSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         initGitHubService();
     }
 
