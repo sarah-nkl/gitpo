@@ -38,7 +38,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RepoSearchEngine {
 
-    private static final int PER_PAGE = 20;
+    public static final int PER_PAGE = 20;
     private static final String GITHUB_SEARCH_URL = "https://api.github.com/";
     private GitHubService mService;
 
@@ -63,6 +63,8 @@ public class RepoSearchEngine {
         List<Repository> result = new ArrayList<>();
 
         Call<List<Repository>> repoList = mService.listRepos(query, "stars", null, pageNum, PER_PAGE);
+
+
 
         try {
             result = repoList.execute().body();

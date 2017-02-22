@@ -209,7 +209,7 @@ public class Repository implements Parcelable {
         dest.writeInt(openIssuesCount);
         dest.writeInt(watchers);
         dest.writeDouble(score);
-        dest.writeSerializable((Serializable) owner);
+        dest.writeParcelable(owner, i);
     }
 
     /** Static field used to regenerate object, individually or as arrays */
@@ -239,6 +239,6 @@ public class Repository implements Parcelable {
         openIssuesCount = pc.readInt();
         watchers = pc.readInt();
         score = pc.readDouble();
-        owner = (Owner) pc.readSerializable();
+        owner = pc.readParcelable(Owner.class.getClassLoader());
     }
 }

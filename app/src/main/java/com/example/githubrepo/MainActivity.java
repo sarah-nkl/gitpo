@@ -22,9 +22,13 @@
 
 package com.example.githubrepo;
 
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.TextView;
 
 import com.example.githubrepo.models.Repository;
 
@@ -99,6 +103,7 @@ public class MainActivity extends BaseSearchActivity {
                         showResult(result);
                     }
                 });
+
     }
 
     private Observable<String> createButtonClickObservable() {
@@ -107,24 +112,29 @@ public class MainActivity extends BaseSearchActivity {
 
             @Override
             public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
-                btnSearch.setOnClickListener(new View.OnClickListener() {
+                etQuery.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     @Override
-                    public void onClick(View view) {
-                        emitter.onNext(etQuery.getText().toString());
+                    public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                            // Your piece of code on keyboard search click
+                            emitter.onNext(etQuery.getText().toString());
+                            return true;
+                        }
+                        return false;
                     }
                 });
 
                 emitter.setCancellable(new Cancellable() {
                     @Override
                     public void cancel() throws Exception {
-                        btnSearch.setOnClickListener(null);
+                        //btnSearch.setOnClickListener(null);
+                        etQuery.setOnEditorActionListener(null);
                     }
                 });
             }
         });
     }
 
-    //1
     private Observable<String> createTextChangeObservable() {
         Observable<String> textChangeObservable = Observable.create(new ObservableOnSubscribe<String>() {
             @Override
@@ -140,6 +150,10 @@ public class MainActivity extends BaseSearchActivity {
 
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        etQuery.setCompoundDrawables(
+                                null,
+                                null,
+                                etQuery.getText().toString().equals("") ? null : x, null);
                         emitter.onNext(s.toString());
                     }
                 };
@@ -163,4 +177,5 @@ public class MainActivity extends BaseSearchActivity {
                     }
                 }).debounce(1000, TimeUnit.MILLISECONDS);  // Wait for x seconds before calling
     }
+
 }

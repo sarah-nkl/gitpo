@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.githubrepo.models.Repository;
 
 import java.text.ParseException;
@@ -21,6 +23,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Created by sarahneo on 20/2/17.
@@ -60,10 +63,17 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
         holder.tvLanguage.setText(item.getLanguage());
         holder.tvStars.setText(Integer.toString(item.getStargazersCount()));
         holder.tvForks.setText(Integer.toString(item.getForksCount()));
-        holder.tvLastUpdated.setText(DateUtils.getRelativeTimeSpanString(
-                convertStringToTimeMillis(item.getPushedAt()),
-                System.currentTimeMillis(),
-                DateUtils.DAY_IN_MILLIS));
+        if (item.getPushedAt() != null) {
+            holder.tvLastUpdated.setText(DateUtils.getRelativeTimeSpanString(
+                    convertStringToTimeMillis(item.getPushedAt()),
+                    System.currentTimeMillis(),
+                    DateUtils.DAY_IN_MILLIS));
+        }
+
+        Glide.with(mActivity)
+                .load(item.getOwner().getAvatarUrl())
+                .diskCacheStrategy(DiskCacheStrategy.RESULT)
+                .into(holder.civProfile);
     }
 
     @Override
@@ -78,6 +88,7 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
         @BindView(R.id.tv_stars) TextView tvStars;
         @BindView(R.id.tv_forks) TextView tvForks;
         @BindView(R.id.tv_last_updated) TextView tvLastUpdated;
+        @BindView(R.id.civ_profile) CircleImageView civProfile;
 
         ViewHolder(View itemView) {
             super(itemView);

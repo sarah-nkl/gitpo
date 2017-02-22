@@ -1,68 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/ll_repo_container"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical">
+    android:layout_marginLeft="@dimen/default_margin"
+    android:layout_marginRight="@dimen/default_margin"
+    android:layout_marginBottom="@dimen/default_margin"
+    app:cardCornerRadius="5dp">
 
-    <TextView
-        android:id="@+id/tv_full_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="square/retrofit" />
-
-    <TextView
-        android:id="@+id/tv_desc"
+    <RelativeLayout
+        android:id="@+id/rl_repo_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:ellipsize="end"
-        tools:text="Type-safe HTTP client for Android and Java by Square, Inc."/>
+        android:padding="@dimen/default_margin">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/civ_profile"
+            android:layout_width="@dimen/avatar_size"
+            android:layout_height="@dimen/avatar_size"
+            tools:src="@drawable/ic_star_grey_700_18dp"
+            app:civ_border_width="1dp"
+            app:civ_border_color="@color/colorDrawables"/>
+
+        <TextView
+            android:id="@+id/tv_full_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/civ_profile"
+            android:layout_toEndOf="@id/civ_profile"
+            android:layout_alignTop="@id/civ_profile"
+            android:layout_marginLeft="@dimen/default_margin"
+            android:ellipsize="end"
+            android:maxLines="1"
+            tools:text="square/retrofit" />
+
+        <TextView
+            android:id="@+id/tv_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_full_name"
+            android:layout_alignLeft="@id/tv_full_name"
+            android:layout_alignStart="@id/tv_full_name"
+            android:layout_marginTop="@dimen/margin_small"
+            android:maxLines="2"
+            android:minLines="1"
+            android:ellipsize="end"
+            android:textSize="@dimen/text_size_small"
+            tools:text="Type-safe HTTP client for Android and Java by Square, Inc."/>
 
         <TextView
             android:id="@+id/tv_language"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1.3"
+            android:layout_below="@id/civ_profile"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
             style="@style/ListItemBottomTextStyle"
             tools:text="Java"/>
 
         <TextView
             android:id="@+id/tv_stars"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_toRightOf="@id/tv_language"
+            android:layout_toEndOf="@id/tv_language"
+            android:layout_alignBaseline="@id/tv_language"
             style="@style/ListItemBottomTextStyle"
-            android:drawableStart="@drawable/ic_star_black_16dp"
+            android:drawableStart="@drawable/ic_star_grey_700_18dp"
+            android:drawableLeft="@drawable/ic_star_grey_700_18dp"
             tools:text="18,991"/>
 
         <TextView
             android:id="@+id/tv_forks"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_call_split_black_18dp"
+            android:layout_toRightOf="@id/tv_stars"
+            android:layout_toEndOf="@id/tv_stars"
+            android:layout_alignBaseline="@id/tv_stars"
+            android:drawableStart="@drawable/ic_call_split_grey_700_18dp"
+            android:drawableLeft="@drawable/ic_call_split_grey_700_18dp"
             style="@style/ListItemBottomTextStyle"
             tools:text="3,945"/>
 
         <TextView
             android:id="@+id/tv_last_updated"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1.5"
-            android:drawableStart="@drawable/ic_timelapse_black_18dp"
+            android:layout_toRightOf="@id/tv_forks"
+            android:layout_toEndOf="@id/tv_forks"
+            android:layout_alignBaseline="@id/tv_forks"
+            android:drawableStart="@drawable/ic_timelapse_grey_700_18dp"
+            android:drawableLeft="@drawable/ic_timelapse_grey_700_18dp"
             style="@style/ListItemBottomTextStyle"
             tools:text="Yesterday"/>
 
-    </LinearLayout>
-</LinearLayout>
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>
