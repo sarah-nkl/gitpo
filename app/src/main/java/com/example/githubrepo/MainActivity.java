@@ -88,7 +88,7 @@ public class MainActivity extends BaseSearchActivity {
     private boolean mIsShowSearch = false;
     private boolean mIsLoading = false;
     private boolean isAllLoaded = false;
-    private int totalCount = 0;
+    private boolean isExecuted = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -209,7 +209,7 @@ public class MainActivity extends BaseSearchActivity {
         } else {
             if (tvNoResults.getVisibility() == View.VISIBLE)
                 tvNoResults.setVisibility(View.GONE);
-            totalCount = event.getData().get(0).getTotal();
+            int totalCount = event.getData().get(0).getTotal();
             int posStart = mRepoList.size();
             mRepoList.addAll(event.getData());
             mAdapter.notifyItemRangeInserted(posStart, event.getData().size());
@@ -258,25 +258,30 @@ public class MainActivity extends BaseSearchActivity {
         Call<List<Repository>> productList = mService.listRepos(query, sort, null, pageNum,
                 Constants.NUM_LOADED);
 
-        productList.enqueue(new Callback<List<Repository>>() {
-            @Override
-            public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
-                LoadReposEvent event = (LoadReposEvent) getEvent(
-                        BusEvent.EventType.REPOS);
-                event.setData(response.body());
-                post(event);
-            }
+        if (isExecuted) {
+            isExecuted = false;
+            productList.enqueue(new Callback<List<Repository>>() {
+                @Override
+                public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
+                    LoadReposEvent event = (LoadReposEvent) getEvent(
+                            BusEvent.EventType.REPOS);
+                    event.setData(response.body());
+                    post(event);
+                    isExecuted = true;
+                }
 
-            @Override
-            public void onFailure(Call<List<Repository>> call, Throwable t) {
-                hideProgressBar();
-                Log.d(TAG, t.getMessage());
-                t.printStackTrace();
-                mRepoList.clear();
-                mAdapter.notifyDataSetChanged();
-                tvNoResults.setVisibility(View.VISIBLE);
-            }
-        });
+                @Override
+                public void onFailure(Call<List<Repository>> call, Throwable t) {
+                    hideProgressBar();
+                    Log.d(TAG, t.getMessage());
+                    t.printStackTrace();
+                    mRepoList.clear();
+                    mAdapter.notifyDataSetChanged();
+                    tvNoResults.setVisibility(View.VISIBLE);
+                    isExecuted = true;
+                }
+            });
+        }
     }
 
     private TextWatcher mTextWatcher =  new TextWatcher() {
