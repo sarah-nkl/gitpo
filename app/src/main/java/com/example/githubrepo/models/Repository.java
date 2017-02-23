@@ -25,6 +25,8 @@ public class Repository implements Parcelable {
     private String language;
     @SerializedName("forks_count")
     private int forksCount;
+    @SerializedName("html_url")
+    private String htmlUrl;
 
     private String ownerAvatarUrl;
     private int total;
@@ -103,6 +105,14 @@ public class Repository implements Parcelable {
         this.total = total;
     }
 
+    public String getHtmlUrl() {
+        return htmlUrl;
+    }
+
+    public void setHtmlUrl(String htmlUrl) {
+        this.htmlUrl = htmlUrl;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -119,6 +129,7 @@ public class Repository implements Parcelable {
         dest.writeInt(forksCount);
         dest.writeString(ownerAvatarUrl);
         dest.writeInt(total);
+        dest.writeString(htmlUrl);
     }
 
     /** Static field used to regenerate object, individually or as arrays */
@@ -142,5 +153,6 @@ public class Repository implements Parcelable {
         forksCount = pc.readInt();
         ownerAvatarUrl = pc.readString();
         total = pc.readInt();
+        htmlUrl = pc.readString();
     }
 }

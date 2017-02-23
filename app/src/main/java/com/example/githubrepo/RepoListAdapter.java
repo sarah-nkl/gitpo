@@ -1,7 +1,9 @@
 package com.example.githubrepo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
@@ -10,6 +12,7 @@ import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -23,6 +26,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
@@ -89,15 +93,27 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
         @BindView(R.id.tv_forks) TextView tvForks;
         @BindView(R.id.tv_last_updated) TextView tvLastUpdated;
         @BindView(R.id.civ_profile) CircleImageView civProfile;
+        @BindView(R.id.rl_repo_container) RelativeLayout rlRepoContainer;
 
         ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
 
+        @OnClick(R.id.rl_repo_container)
+        public void clickItem() {
+            Repository repo = mRepoList.get(getAdapterPosition());
+            String url = repo.getHtmlUrl();
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(Uri.parse(url));
+            if (i.resolveActivity(mActivity.getPackageManager()) != null)
+                mActivity.startActivity(i);
+        }
+
+
     }
 
-    private long convertStringToTimeMillis(String dateString) {
+    private static long convertStringToTimeMillis(String dateString) {
         long milliseconds = 0;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
         try {

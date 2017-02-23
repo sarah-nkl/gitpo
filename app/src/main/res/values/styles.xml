@@ -10,9 +10,16 @@
 
     <style name="ListItemBottomTextStyle">
         <item name="android:layout_marginRight">@dimen/default_margin</item>
-        <item name="android:paddingStart">@dimen/drawable_padding</item>
+        <item name="paddingStart">@dimen/drawable_padding</item>
+        <item name="android:paddingLeft">@dimen/drawable_padding</item>
         <item name="android:textSize">@dimen/text_size_small</item>
         <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="FABStyle">
+        <item name="android:layout_gravity">bottom|end</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
     </style>
 
 </resources>

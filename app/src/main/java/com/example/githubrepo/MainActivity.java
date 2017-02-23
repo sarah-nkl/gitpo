@@ -26,18 +26,20 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -51,8 +53,10 @@ import com.example.githubrepo.services.event.LoadReposEvent;
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.OnClick;
 import retrofit2.Call;
@@ -69,9 +73,11 @@ public class MainActivity extends BaseSearchActivity {
     private static final String KEY_REPO_LIST = "key_repo_list";
     private static final String KEY_IS_LOADING = "key_is_loading";
     private static final String KEY_IS_SHOW_SEARCH = "key_is_show_search";
-    private static final String KEY_TOTAL_RESULTS = "key_total_results";
+    private static final String KEY_IS_ALL_LOADED = "key_is_all_loaded";
     private static final String SORT_BY_STARS = "stars";
     private static final String SORT_BY_UPDATED = "updated";
+//    private static final String SORT_BY_FORKS = "forks";
+    private static final String QUERY_ON_FIRST_LOAD = "stars:>5000";
     private static final int VISIBLE_THRESHOLD = 5;
 
     @BindView(R.id.rv_results)
@@ -86,13 +92,16 @@ public class MainActivity extends BaseSearchActivity {
     TextView tvNoResults;
     @BindView(R.id.btn_search)
     ImageButton btnSearch;
+    @BindView(R.id.coordinatorLayout)
+    CoordinatorLayout coordinatorLayout;
+
+    @BindString(R.string.no_search_history_msg) String mNoHistMsg;
 
     private RepoListAdapter mAdapter;
     private List<Repository> mRepoList;
     private GridLayoutManager mLayoutManager;
-    private boolean mIsShowSearch = false;
     private boolean mIsLoading = false;
-    private boolean isAllLoaded = false;
+    private boolean mIsAllLoaded = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,8 +116,8 @@ public class MainActivity extends BaseSearchActivity {
         if (savedInstanceState != null) {
             mRepoList = savedInstanceState.getParcelableArrayList(KEY_REPO_LIST);
             mIsLoading = savedInstanceState.getBoolean(KEY_IS_LOADING);
-            mIsShowSearch = savedInstanceState.getBoolean(KEY_IS_SHOW_SEARCH);
-            toggleShowSearch(mIsShowSearch);
+            mIsAllLoaded = savedInstanceState.getBoolean(KEY_IS_ALL_LOADED);
+            toggleShowSearch(savedInstanceState.getBoolean(KEY_IS_SHOW_SEARCH));
         } else if (event.getData().size() != 0)
             mRepoList.addAll(event.getData());
 
@@ -119,10 +128,14 @@ public class MainActivity extends BaseSearchActivity {
         if (mRepoList.size() == 0 && !mIsLoading) {
             // Check last search
             String lastSearch = mSharedPref.getString(Constants.SP_LAST_QUERY, "");
-            if (lastSearch.equals(""))
+            if (lastSearch.equals("")) {
                 // On first load, generate popular repositories
-                getRepoList("stars:>5000", SORT_BY_UPDATED, 1);
-            else {
+                getRepoList(QUERY_ON_FIRST_LOAD, SORT_BY_UPDATED, 1);
+                Snackbar snackbar = Snackbar
+                        .make(coordinatorLayout, mNoHistMsg, Snackbar.LENGTH_LONG);
+
+                snackbar.show();
+            } else {
                 getRepoList(lastSearch, SORT_BY_STARS, 1);
                 etQuery.setText(lastSearch);
                 etQuery.setSelection(etQuery.getText().length());
@@ -178,6 +191,7 @@ public class MainActivity extends BaseSearchActivity {
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(KEY_REPO_LIST, (ArrayList<? extends Parcelable>) mRepoList);
         outState.putBoolean(KEY_IS_LOADING, mIsLoading);
+        outState.putBoolean(KEY_IS_ALL_LOADED, mIsAllLoaded);
         outState.putBoolean(KEY_IS_SHOW_SEARCH, btnSearch.getVisibility() == View.GONE);
         super.onSaveInstanceState(outState);
     }
@@ -211,7 +225,7 @@ public class MainActivity extends BaseSearchActivity {
         hideProgressBar();
 
         if (event.getData() == null || event.getData().size() == 0) {
-            isAllLoaded = true;
+            mIsAllLoaded = true;
             if (mRepoList.size() == 0) {
                 // No results found
                 if (tvNoResults.getVisibility() == View.GONE)
@@ -227,7 +241,7 @@ public class MainActivity extends BaseSearchActivity {
             mAdapter.notifyItemRangeInserted(posStart, event.getData().size());
             mIsLoading = false;
             if (mRepoList.size() == totalCount)
-                isAllLoaded = true;
+                mIsAllLoaded = true;
         }
     }
 
@@ -294,8 +308,8 @@ public class MainActivity extends BaseSearchActivity {
         public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 mRepoList.clear();
-                isAllLoaded = false;
-                getRepoList(etQuery.getText().toString(), SORT_BY_UPDATED, 1);
+                mIsAllLoaded = false;
+                getRepoList(etQuery.getText().toString(), SORT_BY_STARS, 1);
                 hideSoftKeyboard();
                 return true;
             }
@@ -318,7 +332,7 @@ public class MainActivity extends BaseSearchActivity {
     };
 
     private void onLoadMore() {
-        if (!isAllLoaded && !etQuery.getText().toString().equals("")) {
+        if (!mIsAllLoaded && !etQuery.getText().toString().equals("")) {
             // Load data
             int index = mRepoList.size();
             getRepoList(etQuery.getText().toString(), SORT_BY_STARS, index / Constants.NUM_LOADED + 1);
@@ -362,4 +376,5 @@ public class MainActivity extends BaseSearchActivity {
 
         mSharedPref.edit().putString(Constants.SP_LAST_QUERY, etQuery.getText().toString()).apply();
     }
+
 }
