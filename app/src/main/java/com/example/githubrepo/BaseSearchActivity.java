@@ -52,7 +52,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public abstract class BaseSearchActivity extends AppCompatActivity {
 
-    protected MenuItem menuItemSearch;
     protected Drawable x;
 
     protected GitHubService mService;

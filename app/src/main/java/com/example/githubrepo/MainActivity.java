@@ -22,9 +22,11 @@
 
 package com.example.githubrepo;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -37,6 +39,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -81,14 +84,15 @@ public class MainActivity extends BaseSearchActivity {
     ImageButton btnBack;
     @BindView(R.id.tv_no_results)
     TextView tvNoResults;
+    @BindView(R.id.btn_search)
+    ImageButton btnSearch;
 
     private RepoListAdapter mAdapter;
     private List<Repository> mRepoList;
-    private LinearLayoutManager mLayoutManager;
+    private GridLayoutManager mLayoutManager;
     private boolean mIsShowSearch = false;
     private boolean mIsLoading = false;
     private boolean isAllLoaded = false;
-    private boolean isExecuted = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -100,18 +104,19 @@ public class MainActivity extends BaseSearchActivity {
         mRepoList = new ArrayList<>();
 
         LoadReposEvent event = (LoadReposEvent) getEvent(BusEvent.EventType.REPOS);
-        if (savedInstanceState != null && savedInstanceState.containsKey(KEY_REPO_LIST)) {
+        if (savedInstanceState != null) {
             mRepoList = savedInstanceState.getParcelableArrayList(KEY_REPO_LIST);
             mIsLoading = savedInstanceState.getBoolean(KEY_IS_LOADING);
             mIsShowSearch = savedInstanceState.getBoolean(KEY_IS_SHOW_SEARCH);
+            toggleShowSearch(mIsShowSearch);
         } else if (event.getData().size() != 0)
             mRepoList.addAll(event.getData());
 
-        mLayoutManager = new LinearLayoutManager(this);
+        mLayoutManager = new GridLayoutManager(this, getResources().getInteger(R.integer.grid_item_list_count));
         rvResults.setLayoutManager(mLayoutManager);
         rvResults.setAdapter(mAdapter = new RepoListAdapter(this, mRepoList));
 
-        if (mRepoList.size() == 0) {
+        if (mRepoList.size() == 0 && !mIsLoading) {
             // Check last search
             String lastSearch = mSharedPref.getString(Constants.SP_LAST_QUERY, "");
             if (lastSearch.equals(""))
@@ -159,21 +164,21 @@ public class MainActivity extends BaseSearchActivity {
 
     private void toggleShowSearch(boolean isShow) {
         if (isShow) {
-            menuItemSearch.setVisible(false);
+            btnSearch.setVisibility(View.GONE);
             etQuery.setVisibility(View.VISIBLE);
             btnBack.setVisibility(View.VISIBLE);
             etQuery.requestFocus();
         } else {
             etQuery.setVisibility(View.GONE);
             btnBack.setVisibility(View.GONE);
-            menuItemSearch.setVisible(true);
+            btnSearch.setVisibility(View.VISIBLE);
         }
     }
 
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(KEY_REPO_LIST, (ArrayList<? extends Parcelable>) mRepoList);
         outState.putBoolean(KEY_IS_LOADING, mIsLoading);
-        outState.putBoolean(KEY_IS_SHOW_SEARCH, !menuItemSearch.isVisible());
+        outState.putBoolean(KEY_IS_SHOW_SEARCH, btnSearch.getVisibility() == View.GONE);
         super.onSaveInstanceState(outState);
     }
 
@@ -186,6 +191,13 @@ public class MainActivity extends BaseSearchActivity {
         etQuery.setOnEditorActionListener(mEditorActionListener);
         rvResults.addOnScrollListener(mOnScrollListener);
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mIsLoading)
+            showProgressBar();
     }
 
     @Override
@@ -219,69 +231,43 @@ public class MainActivity extends BaseSearchActivity {
         }
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        menuItemSearch = menu.findItem(R.id.search_shortcut);
-        toggleShowSearch(mIsShowSearch);
-
-
-        return true;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_search, menu);
-
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
-        switch (item.getItemId()) {
-            case R.id.search_shortcut:
-                toggleShowSearch(true);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
     @OnClick(R.id.btn_back)
     public void clickBack() {
         toggleShowSearch(false);
     }
 
+    @OnClick(R.id.btn_search)
+    public void clickSearch() {
+        toggleShowSearch(true);
+    }
+
     private void getRepoList(String query, String sort, int pageNum) {
         showProgressBar();
+        mIsLoading = true;
 
-        Call<List<Repository>> productList = mService.listRepos(query, sort, null, pageNum,
+        Call<List<Repository>> mCallProductList = mService.listRepos(query, sort, null, pageNum,
                 Constants.NUM_LOADED);
 
-        if (isExecuted) {
-            isExecuted = false;
-            productList.enqueue(new Callback<List<Repository>>() {
-                @Override
-                public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
-                    LoadReposEvent event = (LoadReposEvent) getEvent(
-                            BusEvent.EventType.REPOS);
-                    event.setData(response.body());
-                    post(event);
-                    isExecuted = true;
-                }
 
-                @Override
-                public void onFailure(Call<List<Repository>> call, Throwable t) {
-                    hideProgressBar();
-                    Log.d(TAG, t.getMessage());
-                    t.printStackTrace();
-                    mRepoList.clear();
-                    mAdapter.notifyDataSetChanged();
-                    tvNoResults.setVisibility(View.VISIBLE);
-                    isExecuted = true;
-                }
-            });
-        }
+        mCallProductList.enqueue(new Callback<List<Repository>>() {
+            @Override
+            public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
+                LoadReposEvent event = (LoadReposEvent) getEvent(
+                        BusEvent.EventType.REPOS);
+                event.setData(response.body());
+                post(event);
+            }
+
+            @Override
+            public void onFailure(Call<List<Repository>> call, Throwable t) {
+                hideProgressBar();
+                Log.d(TAG, t.getMessage());
+                t.printStackTrace();
+                mRepoList.clear();
+                mAdapter.notifyDataSetChanged();
+                tvNoResults.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     private TextWatcher mTextWatcher =  new TextWatcher() {
@@ -310,6 +296,7 @@ public class MainActivity extends BaseSearchActivity {
                 mRepoList.clear();
                 isAllLoaded = false;
                 getRepoList(etQuery.getText().toString(), SORT_BY_UPDATED, 1);
+                hideSoftKeyboard();
                 return true;
             }
             return false;
@@ -324,9 +311,8 @@ public class MainActivity extends BaseSearchActivity {
             int totalItemCount = mLayoutManager.getItemCount();
             int lastVisibleItem = mLayoutManager.findLastVisibleItemPosition();
 
-            if (!mIsLoading && totalItemCount <= (lastVisibleItem + VISIBLE_THRESHOLD)) {
+            if (dy != 0 && !mIsLoading && totalItemCount <= (lastVisibleItem + VISIBLE_THRESHOLD)) {
                 onLoadMore();
-                mIsLoading = true;
             }
         }
     };
@@ -345,6 +331,15 @@ public class MainActivity extends BaseSearchActivity {
 
     private void hideProgressBar() {
         pbLoading.setVisibility(View.GONE);
+    }
+
+    private void hideSoftKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            view.clearFocus();
+        }
     }
 
     @Override
