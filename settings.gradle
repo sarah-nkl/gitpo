@@ -1,0 +1,34 @@
+rootProject.name = "gitpo"
+
+include ':app'
+
+if (file('local-settings.gradle').exists()) {
+    // You can create file  local-settings.gradle in root dir and
+    // add to this file your local modules or composite builds
+    apply from: 'local-settings.gradle'
+
+    /**
+     * For libs development you can include any project from dependencies
+     * if clone it locally (best place for that is root dir `ignored`)
+     * and include it with Gradle composite build:
+     * https://docs.gradle.org/current/userguide/composite_builds.html
+     *
+     * Example
+     * <pre>{@code
+     *      //Include external project as composite build,
+     *      //in this case gradle uses module name and group (version is not necessary) and replace external dependency
+     *      //For example this line of code replaces dependency "compile 'com.bandlab.audio:lib_audio:1.2.14'"
+     *      includeBuild 'ignored/bandlab-android-libs/lib_audio'
+     *      //Include project as part of project
+     *      //Required only for integration of code model to IDE (navigation, refactoring etc)
+     *      //I hope that in future versions of Intellij code model integration will be available without that hack
+     *      include ':ignored:bandlab-android-libs:lib_audio'
+     *}</pre>
+     *
+     * After that your IDE provide code integration of app and other project (auto complete and etc)
+     *
+     * This approach not required dependency changes
+     *
+     * Please add all your local dependencies to `local-settings.gradle`, to avoid code version control
+     */
+}

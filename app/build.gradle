@@ -1,0 +1,86 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion Integer.parseInt(rootProject.ANDROID_SDK_VERSION)
+    buildToolsVersion rootProject.ANDROID_BUILD_TOOLS_VERSION
+    defaultConfig {
+        applicationId rootProject.GITPO_APPLICATION_ID
+        testApplicationId rootProject.GITPO_APPLICATION_ID + ".androidtest"
+        minSdkVersion Integer.parseInt(rootProject.MIN_ANDROID_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(rootProject.ANDROID_SDK_VERSION)
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions "TYPE", "ANDROID_VERSION"
+
+    variantFilter { variant ->
+        //Skip build combinations:
+        // - L21Release because l21 flavor using only for debug builds
+        // - StageRelease, we never release stage packages
+        if (variant.buildType.name == "release") {
+            if (variant.flavors[1].name == "l21" || variant.flavors[0].name == "stage") {
+                variant.ignore = true
+            }
+        }
+    }
+
+    productFlavors {
+
+        stage {
+            dimension "TYPE"
+
+            applicationId rootProject.GITPO_APPLICATION_ID + ".test"
+            testApplicationId rootProject.GITPO_APPLICATION_ID + ".test.androidtest"
+        }
+
+        prod {
+            dimension "TYPE"
+        }
+
+        l16 {
+            dimension "ANDROID_VERSION"
+        }
+
+        l21 {
+            dimension "ANDROID_VERSION"
+            //API level 21 - first API level with support of ART-supported multidex output
+            minSdkVersion 21
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+    implementation 'com.github.bumptech.glide:glide:3.7.0'
+    implementation 'com.squareup:otto:1.3.8'
+    implementation 'de.hdodenhof:circleimageview:2.1.0'
+    implementation "com.google.dagger:dagger-android:$DAGGER_VERSION"
+    implementation "com.google.dagger:dagger:$DAGGER_VERSION"
+    kapt "com.google.dagger:dagger-compiler:$DAGGER_VERSION"
+    kapt "com.google.dagger:dagger-android-processor:$DAGGER_VERSION"
+    testImplementation 'junit:junit:4.12'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+repositories {
+    mavenCentral()
+    google()
+}
