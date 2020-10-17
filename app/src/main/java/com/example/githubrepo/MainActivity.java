@@ -22,15 +22,10 @@
 
 package com.example.githubrepo;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -39,22 +34,23 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.githubrepo.models.Repository;
 import com.example.githubrepo.services.event.BusEvent;
 import com.example.githubrepo.services.event.LoadReposEvent;
+import com.google.android.material.snackbar.Snackbar;
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindString;
-import butterknife.BindView;
-import butterknife.OnClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -76,22 +72,7 @@ public class MainActivity extends BaseSearchActivity {
     private static final String QUERY_ON_FIRST_LOAD = "stars:>5000";
     private static final int VISIBLE_THRESHOLD = 5;
 
-    @BindView(R.id.rv_results)
-    RecyclerView rvResults;
-    @BindView(R.id.et_query)
-    EditText etQuery;
-    @BindView(R.id.pb_loading)
-    ProgressBar pbLoading;
-    @BindView(R.id.btn_back)
-    ImageButton btnBack;
-    @BindView(R.id.tv_no_results)
-    TextView tvNoResults;
-    @BindView(R.id.btn_search)
-    ImageButton btnSearch;
-    @BindView(R.id.coordinatorLayout)
-    CoordinatorLayout coordinatorLayout;
-
-    @BindString(R.string.no_search_history_msg) String mNoHistMsg;
+    String mNoHistMsg;
 
     private RepoListAdapter mAdapter;
     private List<Repository> mRepoList;
@@ -102,9 +83,11 @@ public class MainActivity extends BaseSearchActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        
+        mNoHistMsg = getResources().getString(R.string.no_search_history_msg);
         initToolbar();
         initEditText();
+        initButtons();
 
         mRepoList = new ArrayList<>();
 
@@ -118,8 +101,8 @@ public class MainActivity extends BaseSearchActivity {
             mRepoList.addAll(event.getData());
 
         mLayoutManager = new GridLayoutManager(this, getResources().getInteger(R.integer.grid_item_list_count));
-        rvResults.setLayoutManager(mLayoutManager);
-        rvResults.setAdapter(mAdapter = new RepoListAdapter(this, mRepoList));
+        mBinding.rvResults.setLayoutManager(mLayoutManager);
+        mBinding.rvResults.setAdapter(mAdapter = new RepoListAdapter(this, mRepoList));
 
         if (mRepoList.size() == 0 && !mIsLoading) {
             // Check last search
@@ -128,59 +111,75 @@ public class MainActivity extends BaseSearchActivity {
                 // On first load, generate popular repositories
                 getRepoList(QUERY_ON_FIRST_LOAD, SORT_BY_UPDATED, 1);
                 Snackbar snackbar = Snackbar
-                        .make(coordinatorLayout, mNoHistMsg, Snackbar.LENGTH_LONG);
+                        .make(mBinding.coordinatorLayout, mNoHistMsg, Snackbar.LENGTH_LONG);
 
                 snackbar.show();
             } else {
                 getRepoList(lastSearch, SORT_BY_STARS, 1);
-                etQuery.setText(lastSearch);
-                etQuery.setSelection(etQuery.getText().length());
+                mBinding.etQuery.setText(lastSearch);
+                mBinding.etQuery.setSelection( mBinding.etQuery.getText().length());
             }
         }
 
-        etQuery.setCompoundDrawables(null, null, etQuery.getText().toString().equals("") ? null : x, null);
+        mBinding.etQuery.setCompoundDrawables(null, null,  mBinding.etQuery.getText().toString().equals("") ? null : x, null);
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initEditText() {
-        etQuery.requestFocus();
-        x = getResources().getDrawable(R.drawable.ic_clear_white_24dp);
+        mBinding.etQuery.requestFocus();
+        x = ContextCompat.getDrawable(this, R.drawable.ic_clear_white_24dp);
 
         x.setBounds(0, 0, x.getIntrinsicWidth(), x.getIntrinsicHeight());
-        etQuery.setOnTouchListener(new View.OnTouchListener() {
+        mBinding.etQuery.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
 
-                if (etQuery.getCompoundDrawables()[2] == null) {
+                if ( mBinding.etQuery.getCompoundDrawables()[2] == null) {
                     return false;
                 }
                 if (event.getAction() != MotionEvent.ACTION_UP) {
                     return false;
                 }
-                if (event.getX() > etQuery.getWidth() - etQuery.getPaddingRight() - x.getIntrinsicWidth()) {
+                if (event.getX() >  mBinding.etQuery.getWidth() -  mBinding.etQuery.getPaddingRight() - x.getIntrinsicWidth()) {
 
-                    etQuery.setText("");
-                    etQuery.setCompoundDrawables(null, null, null, null);
+                    mBinding.etQuery.setText("");
+                    mBinding.etQuery.setCompoundDrawables(null, null, null, null);
                 }
                 return false;
             }
         });
     }
 
+    private void initButtons() {
+        mBinding.btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggleShowSearch(false);
+            }
+        });
+
+        mBinding.btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggleShowSearch(true);
+            }
+        });
+    }
+
     private void initToolbar() {
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
+        setSupportActionBar(mBinding.toolbar);
     }
 
     private void toggleShowSearch(boolean isShow) {
         if (isShow) {
-            btnSearch.setVisibility(View.GONE);
-            etQuery.setVisibility(View.VISIBLE);
-            btnBack.setVisibility(View.VISIBLE);
-            etQuery.requestFocus();
+            mBinding.btnSearch.setVisibility(View.GONE);
+            mBinding.etQuery.setVisibility(View.VISIBLE);
+            mBinding.btnBack.setVisibility(View.VISIBLE);
+            mBinding. etQuery.requestFocus();
         } else {
-            etQuery.setVisibility(View.GONE);
-            btnBack.setVisibility(View.GONE);
-            btnSearch.setVisibility(View.VISIBLE);
+            mBinding.etQuery.setVisibility(View.GONE);
+            mBinding.btnBack.setVisibility(View.GONE);
+            mBinding.btnSearch.setVisibility(View.VISIBLE);
         }
     }
 
@@ -188,7 +187,7 @@ public class MainActivity extends BaseSearchActivity {
         outState.putParcelableArrayList(KEY_REPO_LIST, (ArrayList<? extends Parcelable>) mRepoList);
         outState.putBoolean(KEY_IS_LOADING, mIsLoading);
         outState.putBoolean(KEY_IS_ALL_LOADED, mIsAllLoaded);
-        outState.putBoolean(KEY_IS_SHOW_SEARCH, btnSearch.getVisibility() == View.GONE);
+        outState.putBoolean(KEY_IS_SHOW_SEARCH, mBinding.btnSearch.getVisibility() == View.GONE);
         super.onSaveInstanceState(outState);
     }
 
@@ -197,9 +196,9 @@ public class MainActivity extends BaseSearchActivity {
         super.onStart();
 
         // Add listeners
-        etQuery.addTextChangedListener(mTextWatcher);
-        etQuery.setOnEditorActionListener(mEditorActionListener);
-        rvResults.addOnScrollListener(mOnScrollListener);
+        mBinding.etQuery.addTextChangedListener(mTextWatcher);
+        mBinding.etQuery.setOnEditorActionListener(mEditorActionListener);
+        mBinding.rvResults.addOnScrollListener(mOnScrollListener);
 
     }
 
@@ -224,13 +223,13 @@ public class MainActivity extends BaseSearchActivity {
             mIsAllLoaded = true;
             if (mRepoList.size() == 0) {
                 // No results found
-                if (tvNoResults.getVisibility() == View.GONE)
-                    tvNoResults.setVisibility(View.VISIBLE);
+                if (mBinding.tvNoResults.getVisibility() == View.GONE)
+                    mBinding.tvNoResults.setVisibility(View.VISIBLE);
             }
 
         } else {
-            if (tvNoResults.getVisibility() == View.VISIBLE)
-                tvNoResults.setVisibility(View.GONE);
+            if (mBinding.tvNoResults.getVisibility() == View.VISIBLE)
+                mBinding.tvNoResults.setVisibility(View.GONE);
             int totalCount = event.getData().get(0).getTotal();
             int posStart = mRepoList.size();
             mRepoList.addAll(event.getData());
@@ -239,16 +238,6 @@ public class MainActivity extends BaseSearchActivity {
             if (mRepoList.size() == totalCount)
                 mIsAllLoaded = true;
         }
-    }
-
-    @OnClick(R.id.btn_back)
-    public void clickBack() {
-        toggleShowSearch(false);
-    }
-
-    @OnClick(R.id.btn_search)
-    public void clickSearch() {
-        toggleShowSearch(true);
     }
 
     private void getRepoList(String query, String sort, int pageNum) {
@@ -261,7 +250,7 @@ public class MainActivity extends BaseSearchActivity {
 
         mCallProductList.enqueue(new Callback<List<Repository>>() {
             @Override
-            public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
+            public void onResponse(@NonNull Call<List<Repository>> call, @NonNull Response<List<Repository>> response) {
                 LoadReposEvent event = (LoadReposEvent) getEvent(
                         BusEvent.EventType.REPOS);
                 event.setData(response.body());
@@ -269,18 +258,18 @@ public class MainActivity extends BaseSearchActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Repository>> call, Throwable t) {
+            public void onFailure(@NonNull Call<List<Repository>> call, @NonNull Throwable t) {
                 hideProgressBar();
                 Log.d(TAG, t.getMessage());
                 t.printStackTrace();
                 mRepoList.clear();
                 mAdapter.notifyDataSetChanged();
-                tvNoResults.setVisibility(View.VISIBLE);
+                mBinding.tvNoResults.setVisibility(View.VISIBLE);
             }
         });
     }
 
-    private TextWatcher mTextWatcher =  new TextWatcher() {
+    private final TextWatcher mTextWatcher =  new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         }
@@ -291,21 +280,21 @@ public class MainActivity extends BaseSearchActivity {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            etQuery.setCompoundDrawables(
+            mBinding.etQuery.setCompoundDrawables(
                     null,
                     null,
-                    etQuery.getText().toString().equals("") ? null : x, null);
+                    mBinding.etQuery.getText().toString().equals("") ? null : x, null);
 
         }
     };
 
-    private TextView.OnEditorActionListener mEditorActionListener = new TextView.OnEditorActionListener() {
+    private final TextView.OnEditorActionListener mEditorActionListener = new TextView.OnEditorActionListener() {
         @Override
         public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 mRepoList.clear();
                 mIsAllLoaded = false;
-                getRepoList(etQuery.getText().toString(), SORT_BY_STARS, 1);
+                getRepoList(mBinding.etQuery.getText().toString(), SORT_BY_STARS, 1);
                 hideSoftKeyboard();
                 return true;
             }
@@ -313,9 +302,9 @@ public class MainActivity extends BaseSearchActivity {
         }
     };
 
-    private RecyclerView.OnScrollListener mOnScrollListener = new RecyclerView.OnScrollListener() {
+    final private RecyclerView.OnScrollListener mOnScrollListener = new RecyclerView.OnScrollListener() {
         @Override
-        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
             super.onScrolled(recyclerView, dx, dy);
 
             int totalItemCount = mLayoutManager.getItemCount();
@@ -328,19 +317,19 @@ public class MainActivity extends BaseSearchActivity {
     };
 
     private void onLoadMore() {
-        if (!mIsAllLoaded && !etQuery.getText().toString().equals("")) {
+        if (!mIsAllLoaded && ! mBinding.etQuery.getText().toString().equals("")) {
             // Load data
             int index = mRepoList.size();
-            getRepoList(etQuery.getText().toString(), SORT_BY_STARS, index / Constants.NUM_LOADED + 1);
+            getRepoList( mBinding.etQuery.getText().toString(), SORT_BY_STARS, index / Constants.NUM_LOADED + 1);
         }
     }
 
     private void showProgressBar() {
-        pbLoading.setVisibility(View.VISIBLE);
+        mBinding.pbLoading.setVisibility(View.VISIBLE);
     }
 
     private void hideProgressBar() {
-        pbLoading.setVisibility(View.GONE);
+        mBinding.pbLoading.setVisibility(View.GONE);
     }
 
     private void hideSoftKeyboard() {
@@ -357,9 +346,9 @@ public class MainActivity extends BaseSearchActivity {
         super.onStop();
 
         // Remove listeners
-        etQuery.removeTextChangedListener(mTextWatcher);
-        etQuery.setOnEditorActionListener(null);
-        rvResults.removeOnScrollListener(mOnScrollListener);
+        mBinding.etQuery.removeTextChangedListener(mTextWatcher);
+        mBinding.etQuery.setOnEditorActionListener(null);
+        mBinding.rvResults.removeOnScrollListener(mOnScrollListener);
     }
 
     @Override
@@ -370,7 +359,7 @@ public class MainActivity extends BaseSearchActivity {
                 BusEvent.EventType.REPOS);
         event.setData(mRepoList);
 
-        mSharedPref.edit().putString(Constants.SP_LAST_QUERY, etQuery.getText().toString()).apply();
+        mSharedPref.edit().putString(Constants.SP_LAST_QUERY,  mBinding.etQuery.getText().toString()).apply();
     }
 
 }

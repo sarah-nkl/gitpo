@@ -26,10 +26,11 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
-import android.view.MenuItem;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.githubrepo.databinding.ActivityMainBinding;
 import com.example.githubrepo.models.Repository;
 import com.example.githubrepo.services.BusProvider;
 import com.example.githubrepo.services.GitHubService;
@@ -38,12 +39,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -57,6 +56,7 @@ public abstract class BaseSearchActivity extends AppCompatActivity {
 
     protected GitHubService mService;
     protected SharedPreferences mSharedPref;
+    protected ActivityMainBinding mBinding;
 
     @Inject
     BusProvider busProvider;
@@ -64,8 +64,8 @@ public abstract class BaseSearchActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+        mBinding = ActivityMainBinding.inflate(getLayoutInflater(), null, false);
+        setContentView(mBinding.getRoot());
 
         ((MyApplication) getApplication()).inject(this);
 

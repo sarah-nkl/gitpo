@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/GitPo.iml" filepath="$PROJECT_DIR$/GitPo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/gitpo.iml" filepath="$PROJECT_DIR$/.idea/modules/gitpo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/gitpo.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/gitpo.app.iml" />
     </modules>
   </component>
 </project>

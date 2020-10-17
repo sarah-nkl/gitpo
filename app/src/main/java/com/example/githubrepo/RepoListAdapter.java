@@ -4,19 +4,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.format.DateUtils;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.example.githubrepo.databinding.ListItemRepoBinding;
 import com.example.githubrepo.models.Repository;
 
 import java.text.ParseException;
@@ -24,20 +25,15 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import de.hdodenhof.circleimageview.CircleImageView;
-
 /**
  * Created by sarahneo on 20/2/17.
  */
 
 public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHolder> {
 
-    private LayoutInflater inflater = null;
-    private AppCompatActivity mActivity;
-    private List<Repository> mRepoList;
+    private final LayoutInflater inflater;
+    private final AppCompatActivity mActivity;
+    private final List<Repository> mRepoList;
 
     public RepoListAdapter(AppCompatActivity activity, List<Repository> repoList) {
         this.mActivity = activity;
@@ -45,11 +41,12 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
         inflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    @NonNull
     @Override
-    public RepoListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = inflater.inflate(R.layout.list_item_repo, parent, false);
+    public RepoListAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        ListItemRepoBinding binding = ListItemRepoBinding.inflate(inflater, parent, false);
 
-        return new ViewHolder(v);
+        return new ViewHolder(binding);
     }
 
     @Override
@@ -61,14 +58,14 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
         SpannableString spanString = new SpannableString(fullName);
         spanString.setSpan(new StyleSpan(Typeface.BOLD), fullName.indexOf("/") + 1, spanString.length(), 0);
         spanString.setSpan(new StyleSpan(Typeface.ITALIC), fullName.indexOf("/") + 1, spanString.length(), 0);
-        holder.tvFullName.setText(spanString);
+        holder.mBinding.tvFullName.setText(spanString);
 
-        holder.tvDesc.setText(item.getDesc());
-        holder.tvLanguage.setText(item.getLanguage());
-        holder.tvStars.setText(Integer.toString(item.getStargazersCount()));
-        holder.tvForks.setText(Integer.toString(item.getForksCount()));
+        holder.mBinding.tvDesc.setText(item.getDesc());
+        holder.mBinding.tvLanguage.setText(item.getLanguage());
+        holder.mBinding.tvStars.setText(Integer.toString(item.getStargazersCount()));
+        holder.mBinding.tvForks.setText(Integer.toString(item.getForksCount()));
         if (item.getPushedAt() != null) {
-            holder.tvLastUpdated.setText(DateUtils.getRelativeTimeSpanString(
+            holder.mBinding.tvLastUpdated.setText(DateUtils.getRelativeTimeSpanString(
                     convertStringToTimeMillis(item.getPushedAt()),
                     System.currentTimeMillis(),
                     DateUtils.DAY_IN_MILLIS));
@@ -77,7 +74,7 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
         Glide.with(mActivity)
                 .load(item.getOwnerAvatarUrl())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
-                .into(holder.civProfile);
+                .into(holder.mBinding.civProfile);
     }
 
     @Override
@@ -86,31 +83,23 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.ViewHo
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.tv_full_name) TextView tvFullName;
-        @BindView(R.id.tv_desc) TextView tvDesc;
-        @BindView(R.id.tv_language) TextView tvLanguage;
-        @BindView(R.id.tv_stars) TextView tvStars;
-        @BindView(R.id.tv_forks) TextView tvForks;
-        @BindView(R.id.tv_last_updated) TextView tvLastUpdated;
-        @BindView(R.id.civ_profile) CircleImageView civProfile;
-        @BindView(R.id.rl_repo_container) RelativeLayout rlRepoContainer;
+        ListItemRepoBinding mBinding;
 
-        ViewHolder(View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
+        ViewHolder(ListItemRepoBinding binding) {
+            super(binding.getRoot());
+            mBinding = binding;
+            mBinding.getRoot().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Repository repo = mRepoList.get(getAdapterPosition());
+                    String url = repo.getHtmlUrl();
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(Uri.parse(url));
+                    if (i.resolveActivity(mActivity.getPackageManager()) != null)
+                        mActivity.startActivity(i);
+                }
+            });
         }
-
-        @OnClick(R.id.rl_repo_container)
-        public void clickItem() {
-            Repository repo = mRepoList.get(getAdapterPosition());
-            String url = repo.getHtmlUrl();
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(Uri.parse(url));
-            if (i.resolveActivity(mActivity.getPackageManager()) != null)
-                mActivity.startActivity(i);
-        }
-
-
     }
 
     private static long convertStringToTimeMillis(String dateString) {
