@@ -63,9 +63,7 @@ class MainActivity : BaseSearchActivity() {
             if (lastSearch == "") {
                 // On first load, generate popular repositories
                 getRepoList(QUERY_ON_FIRST_LOAD, SORT_BY_UPDATED, 1)
-                val snackbar = Snackbar
-                        .make(binding.coordinatorLayout, noHistMsg, Snackbar.LENGTH_LONG)
-                snackbar.show()
+                Snackbar.make(binding.coordinatorLayout, noHistMsg, Snackbar.LENGTH_LONG).show()
             } else {
                 getRepoList(lastSearch, SORT_BY_STARS, 1)
                 binding.etQuery.setText(lastSearch)
@@ -132,8 +130,8 @@ class MainActivity : BaseSearchActivity() {
 
         // Add listeners
         binding.etQuery.addTextChangedListener(mTextWatcher)
-        binding.etQuery.setOnEditorActionListener(mEditorActionListener)
-        binding.rvResults.addOnScrollListener(mOnScrollListener)
+        binding.etQuery.setOnEditorActionListener(editorActionListener)
+        binding.rvResults.addOnScrollListener(onScrollListener)
     }
 
     override fun onResume() {
@@ -209,7 +207,7 @@ class MainActivity : BaseSearchActivity() {
                     if (binding.etQuery.text.toString() == "") null else x, null)
         }
     }
-    private val mEditorActionListener = OnEditorActionListener { _, actionId, _ ->
+    private val editorActionListener = OnEditorActionListener { _, actionId, _ ->
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
             repoList?.clear()
             isAllLoaded = false
@@ -219,7 +217,7 @@ class MainActivity : BaseSearchActivity() {
         }
         false
     }
-    private val mOnScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
+    private val onScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
             val totalItemCount = layoutManager.itemCount
@@ -261,7 +259,7 @@ class MainActivity : BaseSearchActivity() {
         // Remove listeners
         binding.etQuery.removeTextChangedListener(mTextWatcher)
         binding.etQuery.setOnEditorActionListener(null)
-        binding.rvResults.removeOnScrollListener(mOnScrollListener)
+        binding.rvResults.removeOnScrollListener(onScrollListener)
     }
 
     override fun onDestroy() {

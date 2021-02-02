@@ -1,8 +1,8 @@
 package com.example.githubrepo
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.preference.PreferenceManager
 import androidx.appcompat.app.AppCompatActivity
 import com.example.githubrepo.databinding.ActivityMainBinding
 import com.example.githubrepo.models.RepositoryList
@@ -28,7 +28,7 @@ abstract class BaseSearchActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater, null, false)
         setContentView(binding.root)
         (application as MyApplication).inject(this)
-        sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+        sharedPref = getPreferences(Context.MODE_PRIVATE)
         initGitHubService()
     }
 

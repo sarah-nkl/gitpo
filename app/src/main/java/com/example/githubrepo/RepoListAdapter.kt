@@ -1,5 +1,6 @@
 package com.example.githubrepo
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
@@ -9,6 +10,8 @@ import android.text.format.DateUtils
 import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -70,7 +73,11 @@ class RepoListAdapter(
             this.binding.root.setOnClickListener {
                 val url = repoList[adapterPosition].htmlUrl
                 val intent = Intent(Intent.ACTION_VIEW).also { it.data = Uri.parse(url) }
-                intent.resolveActivity(activity.packageManager) ?: activity.startActivity(intent)
+                try {
+                    activity.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(activity, "No browser app available", LENGTH_SHORT).show()
+                }
             }
         }
     }
